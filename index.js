@@ -6,6 +6,9 @@ const fs = require("fs");
 const { writeFile } = require("./app/src/utils/readFile");
 const incomingRequestCaptureFunction = require("./app/src/middleware/request.middleware");
 const notFoundMiddleware = require("./app/src/middleware/notFound.middleware");
+const {
+  clientConnectionHandler,
+} = require("./app/src/config/redisConnections");
 
 const app = express();
 app.use(express.json());
@@ -15,28 +18,7 @@ app.use(incomingRequestCaptureFunction);
 app.use(notFoundMiddleware);
 app.use(errorHandler);
 connectMongodb();
-// const readFileData = fs.readFile(
-//   "./app/src/utils/data.txt",
-//   "utf-8",
-//   (err, data) => {
-//     if (err) {
-//       console.log(err, "err");
-//     } else {
-//       const upperCaseFileData = data.toLocaleUpperCase();
-//       fs.writeFile(
-//         "./app/src/utils/output.txt",
-//         upperCaseFileData,
-//         "utf-8",
-//         (err) => {
-//           if (err) {
-//             console.log("when write to getting error", err);
-//           }
-//         }
-//       );
-//     }
-//   }
-// );
-
+clientConnectionHandler();
 const writeAbleStream = fs.createWriteStream("./app/src/utils/output.txt");
 
 for (let i = 0; i < 100; i++) {
