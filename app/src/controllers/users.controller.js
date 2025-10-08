@@ -1,6 +1,7 @@
 const userModel = require("../models/user.model");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ErrorHandler");
+const responseHandler = require("../utils/responseHandler");
 const validators = require("../utils/validators");
 
 const userHandlers = {
@@ -33,9 +34,7 @@ const userHandlers = {
     const { isValid, missingFields } = validators(bodyData);
 
     if (!isValid) {
-      return res
-        .status(400)
-        .json(`missing Field is ${missingFields.join(",")}`);
+      throw new ApiError(400, `missing Field is ${missingFields.join(",")}`);
     }
 
     const userData = new userModel({
@@ -46,9 +45,7 @@ const userHandlers = {
 
     const userInsertData = await userData.save();
 
-    return res.status(200).json({
-      id: userInsertData._id,
-    });
+    return responseHandler(res, { _id: userInsertData._id });
   }),
   putUsers: asyncHandler(async (req, res) => {
     console.log("function coo");
@@ -97,6 +94,63 @@ const userHandlers = {
       success: true,
       data: findTopUser,
     });
+  }),
+  pagination: asyncHandler(async (req, res) => {
+    const { page, limit } = req.query;
+    const { isValid, missingFields } = validators({ page, limit });
+    if (!isValid) {
+      throw new ApiError(
+        400,
+        `Require for use pagination api ${missingFields.join(",")}`
+      );
+    }
+    const skipLogic = (page - 1) * limit;
+    const findData = await userModel.find().skip(skipLogic).limit(limit).exec();
+    if (!findData.length) {
+      throw new ApiError(404, "not data found");
+    }
+    return responseHandler(res, findData);
+  }),
+  ageHandler: asyncHandler(async (req, res) => {
+    const { ages } = req.query;
+    if (!ages) {
+      throw new ApiError(400, "ages is required to find data");
+    }
+    const userAgeData = await userModel.find({ age: ages });
+    console.info("🚀 ~ userAgeData:", userAgeData);
+    if (!userAgeData.length) {
+      throw new ApiError(404, "no data found");
+    }
+    return responseHandler(res, userAgeData);
+  }),
+  searchByName: asyncHandler(async (req, res) => {
+    const { name } = req.query;
+    if (!name) {
+      throw new ApiError(400, "name is required");
+    }
+    const userFindByName = await userModel.find({ name: name });
+    if (!userFindByName.length) {
+      throw new ApiError(400, "data not found");
+    }
+    return responseHandler(res, userFindByName);
+  }),
+  sortHandler: asyncHandler(async (req, res) => {
+    const { sortBy, order } = req.query;
+    console.info("🚀 ~ order:", order);
+    console.info("🚀 ~ sortBy:", sortBy);
+    const { isValid, missingFields } = validators({ sortBy, order });
+    if (!isValid) {
+      throw new ApiError(400, `required query ${missingFields.join(",")}`);
+    }
+    const sortObj = { [sortBy]: Number(order) };
+    console.info("🚀 ~ sortObj:", sortObj);
+
+    const getUserDataBySort = await userModel.find().sort(sortObj);
+    console.info("🚀 ~ getUserDataBySort:", getUserDataBySort);
+    if (!getUserDataBySort.length) {
+      throw new ApiError(404, "data not found");
+    }
+    return responseHandler(res, getUserDataBySort);
   }),
 };
 

@@ -44,7 +44,7 @@ const userAuth = {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     console.info("🚀 ~ isPasswordValid:", isPasswordValid);
 
-    if (isPasswordValid) {
+    if (!isPasswordValid) {
       throw new ApiError(400, "password is invalid");
     }
     const token = jwt.sign({ _id: user._id }, process.env.secret_key, {
@@ -55,6 +55,26 @@ const userAuth = {
     });
 
     return responseHandler(res, { token, refToken }, "login success");
+  }),
+  resetHandler: asyncHandler(async (req, res) => {
+    const userToken = req.header["authorization"];
+    if (!userToken) {
+      throw new ApiError(400, "Token not found");
+    }
+    jwt.verify(userToken, process.env.secret_key, (err, decode) => {
+      if (err) {
+        throw new ApiError(400, "unAuthorization");
+      }
+      const userId = decode._id;
+
+      const token = jwt.sign(userId, process.env.secret_key, {
+        expiresIn: "1h",
+      });
+      const refreshToken = jwt.sign(userId, process.env.secret_key, {
+        expiresIn: "30d",
+      });
+      return responseHandler(res, { token: token, refreshToken: refreshToken });
+    });
   }),
 };
 

@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+*.log.*
+
+# Environment files
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Package distribution
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+coverage/
+
+# Build output
+dist/
+build/
+
+# Optional: Ignore the package-lock.json (not generally recommended)
+# package-lock.json
+
