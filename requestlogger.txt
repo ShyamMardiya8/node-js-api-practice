@@ -9,3 +9,16 @@
 10:40:43 am : GET, /api/users?ages=140
 10:41:03 am : GET, /api/users?ages=140
 10:41:26 am : GET, /api/users?value=10
+11:06:00 am : GET, /
+11:06:00 am : GET, /favicon.ico
+11:06:03 am : GET, /.well-known/appspecific/com.chrome.devtools.json
+11:06:12 am : GET, /.well-known/appspecific/com.chrome.devtools.json
+11:06:17 am : GET, /.well-known/appspecific/com.chrome.devtools.json
+11:06:24 am : GET, /
+11:06:24 am : GET, /.well-known/appspecific/com.chrome.devtools.json
+11:39:23 am : GET, /api/users
+11:41:39 am : GET, /api/users
+11:42:04 am : GET, /api/users
+11:42:19 am : GET, /api/users
+11:43:31 am : GET, /api/users
+11:43:38 am : GET, /api/users
