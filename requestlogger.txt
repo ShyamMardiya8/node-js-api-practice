@@ -22,3 +22,5 @@
 11:42:19 am : GET, /api/users
 11:43:31 am : GET, /api/users
 11:43:38 am : GET, /api/users
+10:43:45 am : GET, /favicon.ico
+11:16:44 am : GET, /api/download
