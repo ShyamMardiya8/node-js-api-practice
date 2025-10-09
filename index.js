@@ -11,6 +11,7 @@ const {
 } = require("./app/src/config/redisConnections");
 
 const app = express();
+app.get("/", (req, res) => res.send(`Hello from ${process.pid}`));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/api", route);
@@ -19,6 +20,7 @@ app.use(notFoundMiddleware);
 app.use(errorHandler);
 connectMongodb();
 clientConnectionHandler();
+
 const writeAbleStream = fs.createWriteStream("./app/src/utils/output.txt");
 
 for (let i = 0; i < 100; i++) {
@@ -32,8 +34,8 @@ for (let i = 0; i < 100; i++) {
 writeAbleStream.end(() => {
   console.log("finished");
 });
-// console.info("🚀 ~ readFileData:", readFileData);
-// writeFile();
 app.listen(3000, () => {
   console.log(`server started ${3000}`);
 });
+
+module.exports = app;
