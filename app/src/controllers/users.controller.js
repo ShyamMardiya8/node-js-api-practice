@@ -5,6 +5,13 @@ const ApiError = require("../utils/ErrorHandler");
 const responseHandler = require("../utils/responseHandler");
 const validators = require("../utils/validators");
 
+const ApiErrorV2 = (res, statusCode, message) => {
+  return res.status(statusCode).json({
+    success: false,
+    message: message,
+  });
+};
+
 const userHandlers = {
   getUsers: asyncHandler(async (req, res) => {
     // 1️⃣ Check Redis cache first
@@ -19,11 +26,10 @@ const userHandlers = {
       });
     }
 
-    // 2️⃣ If cache is empty, fetch from MongoDB
     const getData = await userModel.find({});
 
     if (!getData.length) {
-      return res.status(404).json({ message: "Data not found" });
+      return ApiErrorV2(res, 400, `user data not found`);
     }
 
     // 3️⃣ Cache the result in Redis for 60 seconds
