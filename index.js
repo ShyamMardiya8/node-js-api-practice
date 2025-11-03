@@ -3,23 +3,25 @@ const errorHandler = require("./app/src/middleware/errorHandler.middleware");
 const route = require("./app/src/routes/routes");
 const express = require("express");
 const fs = require("fs");
+const cors = require("cors");
 const { writeFile } = require("./app/src/utils/readFile");
 const incomingRequestCaptureFunction = require("./app/src/middleware/request.middleware");
 const notFoundMiddleware = require("./app/src/middleware/notFound.middleware");
-const {
-  clientConnectionHandler,
-} = require("./app/src/config/redisConnections");
+// const {
+//   clientConnectionHandler,
+// } = require("./app/src/config/redisConnections");
 
 const app = express();
 app.get("/", (req, res) => res.send(`Hello from ${process.pid}`));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors());
 app.use("/api", route);
 app.use(incomingRequestCaptureFunction);
 app.use(notFoundMiddleware);
 app.use(errorHandler);
 connectMongodb();
-clientConnectionHandler();
+// clientConnectionHandler();
 
 const writeAbleStream = fs.createWriteStream("./app/src/utils/output.txt");
 

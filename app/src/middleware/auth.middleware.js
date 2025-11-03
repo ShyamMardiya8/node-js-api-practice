@@ -18,7 +18,7 @@ const authMiddleware = async (req, res, next) => {
       new Date().toLocaleString(),
       "auth middleware error"
     );
-    throw new ApiError(500, err.message);
+    return res.status(400).json(err);
   }
 };
 
