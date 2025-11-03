@@ -15,30 +15,34 @@ const ApiErrorV2 = (res, statusCode, message) => {
 const userHandlers = {
   getUsers: asyncHandler(async (req, res) => {
     // 1️⃣ Check Redis cache first
-    const cachedData = await client.get("users");
+    // const cachedData = await client.get("users");
 
-    if (cachedData) {
-      // If cache exists, return it directly
-      console.info("🚀 Returning cached data");
-      return res.status(200).json({
-        success: true,
-        data: JSON.parse(cachedData),
-      });
-    }
+    // if (cachedData) {
+    //   // If cache exists, return it directly
+    //   console.info("🚀 Returning cached data");
+    //   return res.status(200).json({
+    //     success: true,
+    //     data: JSON.parse(cachedData),
+    //     status: 200,
+    //   });
+    // }
 
-    const getData = await userModel.find({});
+    const getData = await userModel.find({}).limit(10);
+    const totalDocuments = await userModel.find().countDocuments();
 
     if (!getData.length) {
       return ApiErrorV2(res, 400, `user data not found`);
     }
 
     // 3️⃣ Cache the result in Redis for 60 seconds
-    await client.setEx("users", 60, JSON.stringify(getData));
+    // await client.setEx("users", 60, JSON.stringify(getData));
 
     // 4️⃣ Return the response
     return res.status(200).json({
       success: true,
       data: getData,
+      status: 200,
+      totalDocuments: totalDocuments,
     });
   }),
   getUsersById: asyncHandler(async (req, res) => {
@@ -74,12 +78,13 @@ const userHandlers = {
     return responseHandler(res, { _id: userInsertData._id });
   }),
   putUsers: asyncHandler(async (req, res) => {
-    console.log("function coo");
     const { id } = req.params;
     const { name, email, age } = req.body;
     const { isValid, missingFields } = validators({ name, email, age });
     if (!isValid) {
-      throw ApiError(400, `missing Field is ${missingFields.join(",")}`);
+      return res
+        .status(400)
+        .json(`missing Field is ${missingFields.join(",")}`);
     }
     const updatedUserObj = {
       name,
@@ -151,13 +156,29 @@ const userHandlers = {
   }),
   searchByName: asyncHandler(async (req, res) => {
     const { name } = req.query;
-    if (!name) {
-      throw new ApiError(400, "name is required");
+    const queryParams = req.query;
+    console.info("🚀 ~ queryParams:", queryParams);
+    const filter = {};
+
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (key === "age") {
+        filter[key] = Number(value);
+      } else {
+        filter[key] = { $regex: value, $options: "i" };
+      }
     }
-    const userFindByName = await userModel.find({ name: name });
+
+    console.info("🚀 ~ filter:", filter);
+    const userFindByName = await userModel.find(filter);
+    console.info("🚀 ~ userFindByName:", userFindByName);
+
     if (!userFindByName.length) {
-      throw new ApiError(400, "data not found");
+      // throw new ApiError(400, "data not found");
+      return res.status(404).json({
+        message: "data not found",
+      });
     }
+
     return responseHandler(res, userFindByName);
   }),
   sortHandler: asyncHandler(async (req, res) => {

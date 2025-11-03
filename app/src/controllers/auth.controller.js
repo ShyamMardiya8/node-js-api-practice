@@ -8,6 +8,13 @@ const userAuthModel = require("../models/userAuth.model");
 const bcrypt = require("bcrypt");
 dotenv.config();
 
+const ApiErrorV2 = (res, statusCode, message) => {
+  return res.status(statusCode).json({
+    success: false,
+    message: message,
+  });
+};
+
 const userAuth = {
   createUser: asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -34,18 +41,18 @@ const userAuth = {
     const { email, password } = req.body;
     const { isValid, missingFields } = validators({ email, password });
     if (!isValid) {
-      throw new ApiError(400, `missingField is ${missingFields.join(",")}`);
+      return ApiErrorV2(res, 400, `missingField is ${missingFields.join(",")}`);
     }
     const user = await userAuthModel.findOne({ email: email });
     console.info("🚀 ~ user:", user);
     if (!user) {
-      throw new ApiError(400, "user Not Found");
+      return ApiErrorV2(res, 400, "user Not Found");
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     console.info("🚀 ~ isPasswordValid:", isPasswordValid);
 
     if (!isPasswordValid) {
-      throw new ApiError(400, "password is invalid");
+      return ApiErrorV2(res, 400, "password is invalid");
     }
     const token = jwt.sign({ _id: user._id }, process.env.secret_key, {
       expiresIn: "1h",
@@ -57,7 +64,7 @@ const userAuth = {
     return responseHandler(res, { token, refToken }, "login success");
   }),
   resetHandler: asyncHandler(async (req, res) => {
-    const userToken = req.header["authorization"];
+    const userToken = req.body.refresh;
     if (!userToken) {
       throw new ApiError(400, "Token not found");
     }
@@ -67,13 +74,13 @@ const userAuth = {
       }
       const userId = decode._id;
 
-      const token = jwt.sign(userId, process.env.secret_key, {
+      const token = jwt.sign({ _id: userId }, process.env.secret_key, {
         expiresIn: "1h",
       });
-      const refreshToken = jwt.sign(userId, process.env.secret_key, {
-        expiresIn: "30d",
-      });
-      return responseHandler(res, { token: token, refreshToken: refreshToken });
+      // const refreshToken = jwt.sign({ _id: userId }, process.env.secret_key, {
+      //   expiresIn: "30d",
+      // });
+      return responseHandler(res, { token: token });
     });
   }),
 };
