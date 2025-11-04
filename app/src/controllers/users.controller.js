@@ -28,7 +28,7 @@ const userHandlers = {
     // }
 
     const getData = await userModel.find({}).limit(10);
-    const totalDocuments = await userModel.find().countDocuments();
+    const totalDocuments = (await userModel.find().countDocuments()) / 10;
 
     if (!getData.length) {
       return ApiErrorV2(res, 400, `user data not found`);
